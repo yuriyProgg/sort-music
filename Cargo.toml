@@ -1,0 +1,17 @@
+[package]
+name = "sort-music"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+id3 = "1.16.2"
+
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+incremental = false
+debug = false
+strip = true 
