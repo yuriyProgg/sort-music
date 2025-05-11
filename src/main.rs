@@ -70,13 +70,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Создаем папки для исполнителей и перемещаем файлы
+    let mut i = 0;
+    let len_track_name = artist_map.len().to_string().len();
+
     for (artist, tracks) in artist_map {
+        i += 1;
         if tracks.len() > 1 {
             let artist_dir = Path::new(output_dir.as_str()).join(&artist);
             fs::create_dir_all(&artist_dir)?;
 
             for (_, src_path, file_name) in tracks {
-                let dest_path = artist_dir.join(&file_name);
+                let dest_path =
+                    artist_dir.join(make_filename(&file_name.as_str(), i, len_track_name));
 
                 if let Err(e) = fs::copy(&src_path, &dest_path) {
                     eprintln!("Ошибка при копировании {}: {}", src_path.display(), e);
@@ -91,7 +96,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } else {
             // Для исполнителей с одним треком копируем прямо в выходную папку
             let (_, src_path, file_name) = &tracks[0];
-            let dest_path = Path::new(output_dir.as_str()).join(file_name);
+            let dest_path = Path::new(output_dir.as_str()).join(make_filename(
+                &file_name.as_str(),
+                i,
+                len_track_name,
+            ));
 
             if let Err(e) = fs::copy(src_path, &dest_path) {
                 eprintln!("Ошибка при копировании {}: {}", src_path.display(), e);
@@ -127,4 +136,14 @@ fn find_audio_files(dir: &str) -> Result<Vec<PathBuf>, std::io::Error> {
     }
 
     Ok(audio_files)
+}
+
+fn make_filename(name: &str, index: usize, lenght: usize) -> String {
+    let mut filename = String::new();
+    let len_index = lenght - index.to_string().len();
+    for _ in 0..len_index {
+        filename.push_str("0");
+    }
+    filename.push_str(format!("{}__{}", index, name).as_str());
+    filename
 }
